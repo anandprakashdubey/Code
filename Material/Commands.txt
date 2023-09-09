@@ -1,0 +1,186 @@
+****
+
+minikube start --> will start the cluster
+
+
+
+*******
+
+Kubernet Commands
+
+kubectl create -f pod-definition.yml  --> create pod from yaml file
+kubectl get pods --> get pods
+kubectl get pods,svc --> get pods and service
+kubectl describe pod myapp-pod ---> details about pod
+kubectl delete pod <podname>
+
+kubectl apply -f pod-definition.yml  --> create or apply is same kind of command to create new object from yaml file
+
+
+
+***
+
+replicationcontroller and replicaset use to manintain pods in case of error, 
+replicaset has selector property which is not present in replicationcontroller
+
+replicaset is new form and rc is old
+
+
+In replicaset, The selector section helps the replica set identify what pods fall under it.
+
+It's because replica set can also manage pods that were not created as part of the replica set creation.
+
+Say for example, the reports created before the creation of the replica set that match labels specified
+
+in the selector.
+
+The replica set will also take those pods into consideration when creating the replicas.
+
+
+IMP NOTES -
+
+replica set commands =
+
+1. kubectl create -f replicasetfile.yml
+2. kubectl get replicaset
+3. kubectl delete replicas myapp-replicaset (it will delete all underlying PODS)
+4. kubectl replace -f replicaset-definition.yml
+5. kubectl scale --replica=6 -f <filename.yml>
+
+
+
+
+
+Scaling up replica set through below command- 
+
+1. update the replica value inside file and run - kubectl replica -f replicaset-definition.yml 
+2. kubectl scale --replica=6 -f <filename.yml>
+3. kubectl scale --replica=6 replicaset myapp-replicaset -->by providing type and name 
+
+
+
+
+******************************************Azure Kubernet****************************
+
+--> Current Context - C:\Users\anand\.kube\config
+
+az aks create --resource-group az204 --name myfirstazurecluster --node-count 1  --generate-ssh-keys
+
+az aks install-cli
+
+az aks get-credentials --resource-group az204 --name myfirstazurecluster 
+
+kubectl apply -f https://raw.githubusercontent.com/Microsoft/PartsUnlimited/master/Labfiles/AZ-400T05_Implementing_Application_Infrastructure/M03/azure-vote.yaml
+
+kubectl get service azure-vote-front --watch
+
+kubectl config get-contexts
+*********************************************************************************************************
+
+Deployment -
+
+- Deployment encapsulate replicaset which has container and pods.
+- Deployment enable all the deployment strategies like rollout,back up and if we want to update and give rollout
+- Deployment can be created by using replicaset file but we have to change KIND property to deployment and everything is same
+- After running deployment file, it will deployment object, replicaset and pods
+- Commands - 
+    kubectl create -f deployment.yml
+    kubectl get deployments
+- we can look into everthing by running 
+
+        kubectl get all
+
+
+************** Deployment Updates and Rollback ***********************
+Command: 
+To look rollout status --> kubectl rollout status deployment/myapp-deployment
+To look rollout revision and history --> kubectl rollout history deployment/myapp-deployment
+
+2 Deployment Strategy -
+--> Recreate : Destroy all instances and Create new instances (Problem is - application will downtime)
+--> Rolling update: Destroy and Create instances One by One 
+
+To perform Update and Rollout, just update the image version in deployment yaml file and run the below command -
+    kubectl apply -f deployment.yml
+
+We can do directly on kubernet as well but it will not update the deployment file.
+    kubectl set image deployment myapp-deployment nginx=nginx:1.8.17
+
+
+We can the the recreate and rollingupdate stategies in command window with describe command
+
+    kubectl describe deployment myapp-deployment
+
+****** ROLLBACK Deployment**********
+- kubectl rollout history deployment/myapp-deployment for history
+- kubectl rollout undo deployment/myapp-deployment to Rollback
+
+
+*******************************Services**************************
+
+Services helps communication between pod to cluster to external Users
+
+Types : NodePort, ClusterIP, LoadBalancer
+
+NodePort - 
+It listen to port like 3008 and connect that port to POD port 80 so external user can connect to this POD, In this 3 ports are present
+NodePort( which external user will use), port(this is service object port), and targetPort(this POD port which connect with service)
+NodePort range start from (3000-32767)
+
+Commands -
+    kubectl create -f service.yml
+    kubectl get services
+
+    minikube service myapp-service --url --> required when we run docker with windows 
+
+ClusterIP: In this Multiple pods connect with another multiple pods let say backend pods with common IP so we create service with ClusterIP
+
+LoadBalancer: 
+1. Create Deployment
+2. Create Services (ClusterIP)
+3. Create Services (LoadBalancer)
+
+Reuse the NODPORT service file and update the type as LoadBalancer
+
+ByDefault the type as ClusterIP
+
+***************************************************************************************************************************************
+Microservice Architecture
+1. Deploy PODS
+2. Create Services (ClusterIP) - services name should be same as the name used inside the application, these service should be accessible by outside cluster that's why its cluster IP
+    - redis (for example, voting application trying to connect redis db with connection string name as "redis")
+    - db
+3. Create Services (NodePort)
+    - Voting application
+    - result application
+
+     
+Docker App Images  - https://hub.docker.com/search?q=KodeKloud%2Fexamplevotingapp  (:v1 for vote, result and worker)
+    docker pull kodekloud/examplevotingapp_vote:v1
+    docker pull kodekloud/examplevotingapp_result:v1
+    docker pull kodekloud/examplevotingapp_worker:v1
+
+Redis and PostGress Directly we use from public Image hub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
