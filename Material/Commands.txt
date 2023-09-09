@@ -164,6 +164,14 @@ Redis and PostGress Directly we use from public Image hub
 
 
 
+******************
+
+
+Created Deploy for replication, refer deployment branch
+
+run deploy file and then service file
+
+For Scalling - kubectl scale deployment voting-app-deploy --replicas=3
 
 
 
